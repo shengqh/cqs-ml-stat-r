@@ -63,6 +63,7 @@ set.seed(1985)
 #try to balance the distrubition of inc$Income for trade off the number of samples in each group.
 inc_flds  <- createFolds(inc$Income, k=5)
 cvknnreg <- function(kNN = 10, flds=inc_flds) {
+  print(paste0("KNN=", kNN))
   cverr <- rep(NA, 5)
   for(tst_idx in 1:5) {
     inc_trn <- inc[-flds[[tst_idx]],]

@@ -89,11 +89,13 @@ segments(x0=20:1, x1=20:1,
 
 
 ## Random Forest for Regression
+library("randomForest")
 data(airquality)
 set.seed(131)
 ozone.rf <- randomForest(Ozone ~ ., data=airquality, mtry=3,
                          importance=TRUE, na.action=na.omit)
 print(ozone.rf)
+plot(na.omit(airquality)$Ozone, predict(ozone.rf, na.omit(airquality)))
 ## Show "importance" of variables: higher value mean more important:
 ## For each tree, the prediction error on the out-of-bag portion of
 ## the data is recorded (error rate for classification, MSE for
@@ -120,6 +122,7 @@ varImpPlot(ozone.rf)
 set.seed(1985)
 dia_flds  <- createFolds(PimaIndiansDiabetes$diabetes, k=10)
 cvrf <- function(mtry, flds=dia_flds) {
+  print(paste0("mtry=", mtry))
   cverr <- rep(NA, 5)
   for(tst_idx in 1:5) {
     dia_trn <- PimaIndiansDiabetes[-flds[[tst_idx]],]
@@ -132,15 +135,15 @@ cvrf <- function(mtry, flds=dia_flds) {
   return(cverr)
 }
 
-
-## Compute 5-fold CV for randomForest, mtry = 1:5
-cverrs <- sapply(1:5, cvrf)
+ntest<-5
+## Compute 5-fold CV for randomForest, mtry=1:ntest
+cverrs <- sapply(1:ntest, cvrf)
 cverrs_mean <- apply(cverrs, 2, mean)
 cverrs_sd   <- apply(cverrs, 2, sd)
-plot(x=1:5, y=cverrs_mean, 
+plot(x=1:ntest, y=cverrs_mean, 
      ylim=range(cverrs),
      xlab="mtry", ylab="CV Estimate of Test Error")
-segments(x0=1:5, x1=1:5,
+segments(x0=1:ntest, x1=1:ntest,
          y0=cverrs_mean-cverrs_sd,
          y1=cverrs_mean+cverrs_sd)
 
