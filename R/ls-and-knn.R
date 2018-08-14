@@ -75,7 +75,7 @@ cvknnreg <- function(kNN = 10, flds=inc_flds) {
 }
 
 ntest<-20
-## Compute 5-fold CV for kNN, where k = 1:10
+## Compute 5-fold CV for kNN, where n = 1:ntest
 cverrs <- sapply(1:ntest, cvknnreg)
 cverrs_mean <- apply(cverrs, 2, mean)
 cverrs_sd   <- apply(cverrs, 2, sd)
