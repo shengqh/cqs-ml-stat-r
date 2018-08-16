@@ -95,7 +95,7 @@ set.seed(131)
 ozone.rf <- randomForest(Ozone ~ ., data=airquality, mtry=3,
                          importance=TRUE, na.action=na.omit)
 print(ozone.rf)
-plot(airquality$Ozone, predict(ozone.rf, na.omit(airquality)))
+
 ## Show "importance" of variables: higher value mean more important:
 ## For each tree, the prediction error on the out-of-bag portion of
 ## the data is recorded (error rate for classification, MSE for
@@ -106,36 +106,32 @@ round(importance(ozone.rf), 2)
 varImpPlot(ozone.rf)
 ozone.rf$mse
 
-## Use RF to predict the onset of diabetes in female Pima Indians from 
-## medical record data.
-## Binary Classification
-## Dimensions: 768 instances, 9 attributes
-## Inputs: Numeric
-## Output: Categorical, 2 class labels
-library('mlbench')
-data('PimaIndiansDiabetes')
-help('PimaIndiansDiabetes')
-diab.rf <- randomForest(diabetes ~ ., data=PimaIndiansDiabetes,
-                        mtry=3, importance=TRUE, na.action=na.omit)
-varImpPlot(ozone.rf)
 
-## 5-fold CV for diabetes data
+########################################################
+## Classification/regression trees and random forest lab
+########################################################
+
+## 1. Implement 5-fold CV for the random forest on the airquality data,
+##    varying the value of mtry
+
+## 10-fold CV for airquality data
 set.seed(1985)
-dia_flds  <- createFolds(PimaIndiansDiabetes$diabetes, k=10)
+airquality <- na.omit(airquality)
+dia_flds  <- createFolds(airquality$Ozone, k=10)
 cvrf <- function(mtry, flds=dia_flds) {
-  cverr <- rep(NA, 5)
-  for(tst_idx in 1:5) {
-    dia_trn <- PimaIndiansDiabetes[-flds[[tst_idx]],]
-    dia_tst <- PimaIndiansDiabetes[ flds[[tst_idx]],]
-    diab.rf <- randomForest(diabetes ~ ., data=dia_trn,
+  cverr <- rep(NA, 10)
+  for(tst_idx in 1:10) {
+    dia_trn <- airquality[-flds[[tst_idx]],]
+    dia_tst <- airquality[ flds[[tst_idx]],]
+    diab.rf <- randomForest(Ozone ~ ., data=dia_trn,
                         mtry=mtry, importance=TRUE, na.action=na.omit)
     pre_tst <- predict(diab.rf, dia_tst)
-    cverr[tst_idx] <- mean(dia_tst$diabetes != pre_tst)
+    cverr[tst_idx] <- mean((dia_tst$Ozone - pre_tst)^2)
   }
   return(cverr)
 }
 
-## Compute 5-fold CV for randomForest, mtry = 1:5
+## Compute 10-fold CV for randomForest, mtry = 1:5
 cverrs <- sapply(1:5, cvrf)
 cverrs_mean <- apply(cverrs, 2, mean)
 cverrs_sd   <- apply(cverrs, 2, sd)
@@ -145,10 +141,3 @@ plot(x=1:5, y=cverrs_mean,
 segments(x0=1:5, x1=1:5,
          y0=cverrs_mean-cverrs_sd,
          y1=cverrs_mean+cverrs_sd)
-
-########################################################
-## Classification/regression trees and random forest lab
-########################################################
-
-## 1. Implement 5-fold CV for the random forest on the airquality data,
-##    varying the value of mtry
